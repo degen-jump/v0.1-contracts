@@ -29,7 +29,7 @@ contract PresaleReleaseExcutor is Ownable {
         uint256 progress = presaleManager.getProgress(poolAddress);
         require(progress >= 100, "TokenMaker : progress is not enough");
         Presale memory presale = presaleManager.getPresale(poolAddress);
-        presaleManager.exit(address(this));
+        presaleManager.exit(poolAddress);
         require(presale.released == false, "TokenMaker : presale is already released");
 
         PositionInfo memory position = getPositionInfo(presale.positionTokenId);
@@ -90,10 +90,7 @@ contract PresaleReleaseExcutor is Ownable {
                 block.timestamp + 100
             )
         );
-        presale.positionTokenId = newTokenId;
-        presale.released = true;
-        presaleManager.putPresale(presale);
-        positionManager.transferFrom(address(this), address(0), newTokenId);
+        positionManager.transferFrom(address(this), address(presaleManager), newTokenId);
     }
 
     function getPositionInfo(uint256 tokenId) internal view returns (PositionInfo memory) {

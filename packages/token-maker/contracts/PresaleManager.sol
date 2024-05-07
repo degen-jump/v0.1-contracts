@@ -34,7 +34,7 @@ contract PresaleManager is Ownable, IERC721Receiver {
     }
 
     function putPresale(Presale memory presale) external {
-        require(presaleMakers[msg.sender], "");
+        require(presaleMakers[msg.sender], "PresaleManager: FORBIDDEN");
         presales[presale.pair] = presale;
         emit PresaleCreated(
             presale.name,
