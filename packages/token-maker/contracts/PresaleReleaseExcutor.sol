@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.7;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./CommonERC20.sol";
 import {IAlgebraPool} from "@cryptoalgebra/integral-core/contracts/interfaces/IAlgebraPool.sol";
 import {INonfungiblePositionManager} from "@cryptoalgebra/integral-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
@@ -9,7 +8,7 @@ import {IWNativeToken} from "@cryptoalgebra/integral-periphery/contracts/interfa
 import {TickMath} from "@cryptoalgebra/integral-core/contracts/libraries/TickMath.sol";
 import {PresaleManager, Presale} from "./PresaleManager.sol";
 
-contract PresaleReleaseExcutor is Ownable {
+contract PresaleReleaseExcutor {
     address public immutable WNativeToken;
 
     INonfungiblePositionManager public positionManager;
@@ -19,7 +18,7 @@ contract PresaleReleaseExcutor is Ownable {
         INonfungiblePositionManager _positionManager,
         address _WNativeToken,
         PresaleManager _presaleManager
-    ) Ownable() {
+    ) {
         positionManager = _positionManager;
         WNativeToken = _WNativeToken;
         presaleManager = _presaleManager;

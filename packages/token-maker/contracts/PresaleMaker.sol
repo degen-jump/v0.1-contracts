@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.7;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "./CommonERC20.sol";
 import {IAlgebraPluginFactory} from "@cryptoalgebra/integral-core/contracts/interfaces/plugin/IAlgebraPluginFactory.sol";
 import {IAlgebraFactory} from "@cryptoalgebra/integral-core/contracts/interfaces/IAlgebraFactory.sol";
@@ -12,7 +11,7 @@ import {TickMath} from "@cryptoalgebra/integral-core/contracts/libraries/TickMat
 import {PresaleManager, Presale} from "./PresaleManager.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
-contract PresaleMaker is Ownable, IERC721Receiver {
+contract PresaleMaker is IERC721Receiver {
     address public immutable WNativeToken;
 
     IAlgebraPluginFactory pluginFactory = IAlgebraPluginFactory(address(0x313F9DEe835569F1AaEA51854818C72cD6302509));
@@ -31,13 +30,14 @@ contract PresaleMaker is Ownable, IERC721Receiver {
         IAlgebraFactory _factory,
         INonfungiblePositionManager _positionManager,
         address _WNativeToken,
-        PresaleManager _presaleManager
-    ) Ownable() {
+        PresaleManager _presaleManager,
+        address _feeVault
+    ) {
         factory = _factory;
         positionManager = _positionManager;
         WNativeToken = _WNativeToken;
         presaleManager = _presaleManager;
-        feeVault = msg.sender;
+        feeVault = _feeVault;
     }
 
     function create(
@@ -112,10 +112,6 @@ contract PresaleMaker is Ownable, IERC721Receiver {
                 false
             )
         );
-    }
-
-    function putFeeVault(address _feeVault) external onlyOwner {
-        feeVault = _feeVault;
     }
 
     receive() external payable {}
