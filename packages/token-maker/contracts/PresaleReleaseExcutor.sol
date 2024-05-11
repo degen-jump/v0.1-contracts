@@ -25,11 +25,9 @@ contract PresaleReleaseExcutor is Ownable {
         presaleManager = _presaleManager;
     }
 
-    function release(address poolAddress) external returns (Presale memory) {
-        uint256 progress = presaleManager.getProgress(poolAddress);
-        require(progress >= 100, "TokenMaker : progress is not enough");
+    function release(address poolAddress) external {
+        require(msg.sender == address(presaleManager), "TokenMaker : FORBIDDEN");
         Presale memory presale = presaleManager.getPresale(poolAddress);
-        presaleManager.exit(poolAddress);
         require(presale.released == false, "TokenMaker : presale is already released");
 
         PositionInfo memory position = getPositionInfo(presale.positionTokenId);

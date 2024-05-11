@@ -6,10 +6,11 @@ import "./CommonERC20.sol";
 import {IAlgebraPool} from "@cryptoalgebra/integral-core/contracts/interfaces/IAlgebraPool.sol";
 import {INonfungiblePositionManager} from "@cryptoalgebra/integral-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "./PresaleReleaseExcutor.sol";
 
 contract PresaleManager is Ownable, IERC721Receiver {
     mapping(address => bool) public presaleMakers;
-    address public releaseExecutor;
+    PresaleReleaseExcutor public releaseExecutor;
     address public immutable WNativeToken;
     mapping(address => Presale) public presales;
     INonfungiblePositionManager public positionManager;
@@ -19,6 +20,7 @@ contract PresaleManager is Ownable, IERC721Receiver {
     constructor(address _WNativeToken, INonfungiblePositionManager _positionManager) Ownable() {
         WNativeToken = _WNativeToken;
         positionManager = _positionManager;
+        releaseExecutor = new PresaleReleaseExcutor(_positionManager, _WNativeToken, this);
     }
 
     function putPresaleMaker(address presaleMaker) external onlyOwner {
@@ -27,10 +29,6 @@ contract PresaleManager is Ownable, IERC721Receiver {
 
     function removePresaleMaker(address presaleMaker) external onlyOwner {
         presaleMakers[presaleMaker] = false;
-    }
-
-    function putReleaseExecutor(address _releaseExecutor) external onlyOwner {
-        releaseExecutor = _releaseExecutor;
     }
 
     function putPresale(Presale memory presale) external {
@@ -64,10 +62,12 @@ contract PresaleManager is Ownable, IERC721Receiver {
         }
     }
 
-    function exit(address poolAddress) external {
-        require(msg.sender == owner() || msg.sender == releaseExecutor, "PresaleManager: FORBIDDEN");
+    function release(address poolAddress) external {
+        uint256 progress = getProgress(poolAddress);
+        require(progress >= 100, "TokenMaker : progress is not enough");
         uint256 tokenId = presales[poolAddress].positionTokenId;
-        positionManager.transferFrom(address(this), msg.sender, tokenId);
+        positionManager.transferFrom(address(this), address(releaseExecutor), tokenId);
+        releaseExecutor.release(poolAddress);
     }
 
     function onERC721Received(

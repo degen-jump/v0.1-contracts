@@ -19,7 +19,7 @@ contract PresaleMaker is Ownable, IERC721Receiver {
     uint8 pluginConfig = 0x00000000000000000000000000000000000000000000000000000000000000c1;
 
     uint256 public fee = 1e16;
-    uint256 public fee2 = 5e14;
+    uint256 public ethFee = 5e14;
     address private feeVault;
     uint256 public minimalTotalSupply = 10000000e18;
 
@@ -53,14 +53,14 @@ contract PresaleMaker is Ownable, IERC721Receiver {
     ) external payable {
         require(totalSupply > minimalTotalSupply, "TokenMaker : totalSupply is too low");
         require(minterAllocation < totalSupply, "TokenMaker : minterAllocation is too high");
-        require(fee2 <= msg.value, "TokenMaker : fee is too low");
+        require(ethFee <= msg.value, "TokenMaker : fee is too low");
 
         CommonERC20 token = new CommonERC20(name, symbol, totalSupply);
         address poolAddress = factory.createPool(WNativeToken, address(token));
         uint256 feeAmount = (totalSupply * fee) / 1e18;
 
         token.transfer(feeVault, feeAmount);
-        payable(feeVault).transfer(fee2);
+        payable(feeVault).transfer(ethFee);
 
         if (minterAllocation > 0) {
             token.transfer(msg.sender, minterAllocation);
@@ -112,10 +112,6 @@ contract PresaleMaker is Ownable, IERC721Receiver {
                 false
             )
         );
-    }
-
-    function setFee(uint256 _fee) external onlyOwner {
-        fee = _fee;
     }
 
     function putFeeVault(address _feeVault) external onlyOwner {
