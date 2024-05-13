@@ -8,31 +8,24 @@ import {INonfungiblePositionManager} from "@cryptoalgebra/integral-periphery/con
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./PresaleReleaseExcutor.sol";
 
-contract PresaleManager is Ownable, IERC721Receiver {
-    mapping(address => bool) public presaleMakers;
+contract PresaleManager is IERC721Receiver {
     PresaleReleaseExcutor public releaseExecutor;
     address public immutable WNativeToken;
     mapping(address => Presale) public presales;
     INonfungiblePositionManager public positionManager;
     mapping(uint256 => address) public tokenMakers;
+    address public presaleMaker;
 
 
-    constructor(address _WNativeToken, INonfungiblePositionManager _positionManager) Ownable() {
+    constructor(address _WNativeToken, address _presaleMaker, INonfungiblePositionManager _positionManager) {
         WNativeToken = _WNativeToken;
         positionManager = _positionManager;
+        presaleMaker = _presaleMaker;
         releaseExecutor = new PresaleReleaseExcutor(_positionManager, _WNativeToken, this);
     }
 
-    function putPresaleMaker(address presaleMaker) external onlyOwner {
-        presaleMakers[presaleMaker] = true;
-    }
-
-    function removePresaleMaker(address presaleMaker) external onlyOwner {
-        presaleMakers[presaleMaker] = false;
-    }
-
     function putPresale(Presale memory presale) external {
-        require(presaleMakers[msg.sender], "PresaleManager: FORBIDDEN");
+        require(presaleMaker == msg.sender, "PresaleManager: FORBIDDEN");
         presales[presale.pair] = presale;
         emit PresaleCreated(
             presale.name,
