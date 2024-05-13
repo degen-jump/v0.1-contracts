@@ -13,21 +13,20 @@ contract PresaleManager is IERC721Receiver {
     address public immutable WNativeToken;
     mapping(address => Presale) public presales;
     INonfungiblePositionManager public positionManager;
-    mapping(uint256 => address) public tokenMakers;
-    address public presaleMaker;
 
-
-    constructor(address _WNativeToken, address _presaleMaker, INonfungiblePositionManager _positionManager) {
+    constructor(address _WNativeToken, INonfungiblePositionManager _positionManager) {
         WNativeToken = _WNativeToken;
         positionManager = _positionManager;
-        presaleMaker = _presaleMaker;
         releaseExecutor = new PresaleReleaseExcutor(_positionManager, _WNativeToken, this);
     }
 
     function putPresale(Presale memory presale) external {
-        require(presaleMaker == msg.sender, "PresaleManager: FORBIDDEN");
+        require(presales[presale.pair].presaleAmount == 0, "PresaleManager: already exists");
         presales[presale.pair] = presale;
+        positionManager.transferFrom(msg.sender, address(this), presale.positionTokenId);
+
         emit PresaleCreated(
+            msg.sender,
             presale.name,
             presale.symbol,
             presale.presaleAmount,
@@ -57,7 +56,7 @@ contract PresaleManager is IERC721Receiver {
 
     function release(address poolAddress) external {
         uint256 progress = getProgress(poolAddress);
-        require(progress >= 100, "TokenMaker : progress is not enough");
+        require(progress >= 100, "PresaleManager : progress is not enough");
         uint256 tokenId = presales[poolAddress].positionTokenId;
         positionManager.transferFrom(address(this), address(releaseExecutor), tokenId);
         releaseExecutor.release(poolAddress);
@@ -73,6 +72,7 @@ contract PresaleManager is IERC721Receiver {
     }
 
     event PresaleCreated(
+        address from,
         string name,
         string symbol,
         uint256 presaleAmount,

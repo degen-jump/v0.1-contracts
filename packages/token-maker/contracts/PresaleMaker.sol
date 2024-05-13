@@ -97,7 +97,7 @@ contract PresaleMaker is IERC721Receiver {
                 block.timestamp + 100
             )
         );
-        positionManager.transferFrom(address(this), address(presaleManager), tokenId);
+        positionManager.approve(address(presaleManager), tokenId);
         presaleManager.putPresale(
             Presale(
                 name,
